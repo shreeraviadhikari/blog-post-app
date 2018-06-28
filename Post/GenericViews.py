@@ -15,6 +15,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 # Import Generic View
 from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
 
 from Post.models import Post, Comment, Like
 
@@ -33,7 +34,8 @@ class PostList(APIView):
     def post(self, request):
         # Save New Post or update
         data = request.data
-        post_serializer = PostSerializer(data=data)
+        import ipdb; ipdb.set_trace()
+        post_serializer = PostSerializer(data=data, context={'request': request, 'author': request.user})
         if post_serializer.is_valid():
             post_serializer.save()
             return Response(post_serializer.data, status=status.HTTP_201_CREATED)
@@ -62,8 +64,8 @@ class CommentList(APIView):
 
 
 class PostDetail(APIView):
-
-    def get_object(self, pk):
+    @staticmethod
+    def get_object(pk):
         post = get_object_or_404(Post, pk=pk)
         return post
 
@@ -82,11 +84,11 @@ class PostDetail(APIView):
         else:
             return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # def delete(self, request, pk):
-    #     instance = self.get_object(pk)
-    #     instance.archived = True
-    #     instance.save()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        instance.archived = True
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ListUser(generics.ListAPIView):
@@ -122,7 +124,7 @@ class CreateDestroyLikeView(APIView):
 
 class DashboardView(generics.ListAPIView):
     class PostPagination(PageNumberPagination):
-        page_size = 2
+        page_size = 1
         page_size_query_param = 'page_size'
         max_page_size = 100
 

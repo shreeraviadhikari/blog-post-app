@@ -4,6 +4,16 @@ from Post.models import Post, Comment, Like
 
 
 class PostSerializer(serializers.ModelSerializer):
+
+    def to_representation(self, instance):
+        old = super(PostSerializer, self).to_representation(instance)
+        # import ipdb;ipdb.set_trace()
+        if self.context.get('user'):
+            # old.pop('published')
+            # old.pop('archived')
+            old.setdefault('author', self.context.get('user'))
+        return old
+
     class Meta:
         model = Post
         fields = '__all__'
