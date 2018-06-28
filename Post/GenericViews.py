@@ -121,17 +121,24 @@ class CreateDestroyLikeView(APIView):
 
 
 class PostPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 2
     page_size_query_param = 'page_size'
     max_page_size = 100
 
 
 class DashboardView(generics.ListAPIView):
     pagination_class = PostPagination
-    pass
-    # authentication class required
-    # published, unpublished, archived post list
-    # archived = Post.objects.filter(archived=True)
-    # published = Post.objects.filter(published=True)
-    # unpublished = Post.objects.filter(published=False)
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        paginate_type = self.kwargs.get('ctype', None)
+        if paginate_type == 'published':
+            qs = Post.objects.filter(published=True)
+        elif paginate_type == 'unpublished':
+            qs = Post.objects.filter(published=False)
+        elif paginate_type == 'archived':
+            qs = Post.objects.filter(archived=True)
+        else:
+            qs = Post.objects.none()
+        return qs
 

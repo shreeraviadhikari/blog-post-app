@@ -16,8 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from Post import GenericViews
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('post/', include('Post.urls')),
     path('api-auth/', include('rest_framework.urls')),
+    # Dashboard View
+    path('dashboard/<slug:ctype>', GenericViews.DashboardView.as_view()),
 ]

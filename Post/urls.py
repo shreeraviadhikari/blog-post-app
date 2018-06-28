@@ -20,6 +20,7 @@ urlpatterns = [
     # CREATE, DELETE Like given post id.
     path('post/<int:pk>/like/', GenericViews.CreateDestroyLikeView.as_view()),
 
+
     # User View
     path('user/', GenericViews.ListUser.as_view()),
     path('user/<int:pk>/', GenericViews.UserDetail.as_view()),
