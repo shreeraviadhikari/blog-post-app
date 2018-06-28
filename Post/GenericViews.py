@@ -120,13 +120,12 @@ class CreateDestroyLikeView(APIView):
             return Response(like_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PostPagination(PageNumberPagination):
-    page_size = 2
-    page_size_query_param = 'page_size'
-    max_page_size = 100
-
-
 class DashboardView(generics.ListAPIView):
+    class PostPagination(PageNumberPagination):
+        page_size = 2
+        page_size_query_param = 'page_size'
+        max_page_size = 100
+
     pagination_class = PostPagination
     serializer_class = PostSerializer
 

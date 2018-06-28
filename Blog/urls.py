@@ -20,8 +20,17 @@ from Post import GenericViews
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('post/', include('Post.urls')),
-    path('api-auth/', include('rest_framework.urls')),
+
+    path('member/', include('rest_framework.urls')),
     # Dashboard View
     path('dashboard/<slug:ctype>', GenericViews.DashboardView.as_view()),
+
+    # User View
+    path('user/', GenericViews.ListUser.as_view()),
+    path('user/<int:pk>/', GenericViews.UserDetail.as_view()),
+
+    # Default load the post
+    path('', include('Post.urls')),
 ]
+
+

@@ -5,9 +5,6 @@ from Post import views, GenericViews
 
 urlpatterns = [
 
-    # List All Posts
-    url(r'^post/$', GenericViews.PostList.as_view()),
-
     # List All Comments for Post Given id.
     url(r'^comments/(?P<pk>[0-9]+)/$', GenericViews.CommentList.as_view()),
 
@@ -20,9 +17,8 @@ urlpatterns = [
     # CREATE, DELETE Like given post id.
     path('post/<int:pk>/like/', GenericViews.CreateDestroyLikeView.as_view()),
 
+    # List All Posts
+    path('', GenericViews.PostList.as_view()),
 
-    # User View
-    path('user/', GenericViews.ListUser.as_view()),
-    path('user/<int:pk>/', GenericViews.UserDetail.as_view()),
 ]
 
