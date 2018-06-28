@@ -1,2 +1,2 @@
-from .post import Post, Comment
+from .post import Post, Comment, Like
 
