@@ -6,7 +6,7 @@ from Post import views, GenericViews
 urlpatterns = [
 
     # List All Comments for Post Given id.
-    url(r'^comments/(?P<pk>[0-9]+)/$', GenericViews.CommentList.as_view()),
+    url(r'^post/(?P<pk>[0-9]+)/comments/$', GenericViews.CommentList.as_view()),
 
     # GET, PUT for Post given id.
     url(r'^post/(?P<pk>[0-9]+)/$', GenericViews.PostDetail.as_view()),

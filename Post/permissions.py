@@ -18,3 +18,11 @@ class IsOwner(permissions.BasePermission):
             return post_owner
         return False
 
+#
+# class IsAuthenticated(permissions.BasePermission):
+#     """
+#     Permission to check if the user is anything besided Anonymous User.
+#     """
+#
+#     def has_permission(self, request, view):
+#         pass

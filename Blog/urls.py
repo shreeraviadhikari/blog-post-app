@@ -15,11 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.authtoken import views as tokenView
 
 from Post import GenericViews
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # DRF Token Authentication
+    path('api-token-auth/', tokenView.obtain_auth_token),
 
     path('member/', include('rest_framework.urls')),
     # Dashboard View

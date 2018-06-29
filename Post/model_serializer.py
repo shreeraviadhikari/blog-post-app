@@ -3,26 +3,34 @@ from rest_framework import serializers
 from Post.models import Post, Comment, Like
 
 
-class PostSerializer(serializers.ModelSerializer):
-
-    def to_representation(self, instance):
-        old = super(PostSerializer, self).to_representation(instance)
-        # import ipdb;ipdb.set_trace()
-        if self.context.get('user'):
-            # old.pop('published')
-            # old.pop('archived')
-            old.setdefault('author', self.context.get('user'))
-        return old
-
-    class Meta:
-        model = Post
-        fields = '__all__'
-
-
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
+
+
+class PostSerializer(serializers.ModelSerializer):
+    comments = CommentSerializer(many=True)
+
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get('request')
+        if request.user.is_superuser:
+            return fields
+        if request.method == 'POST':
+            fields.pop('archived')
+            fields.pop('published')
+        elif request.method == 'PUT':
+            fields.pop('published')
+            if request.user == self.instance.author:
+                return fields
+            fields.pop('archived')
+        return fields
+
+    class Meta:
+        model = Post
+        fields = ('id', 'title', 'description', 'comments')
+        # write_only_fields = ('id', )
 
 
 class UserSerializer(serializers.ModelSerializer):

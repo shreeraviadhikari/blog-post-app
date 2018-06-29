@@ -5,8 +5,9 @@ from django.http import HttpResponse
 
 # import response
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import permission_classes
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, generics
 
@@ -25,22 +26,25 @@ from Post.permissions import IsOwner
 
 
 class PostList(APIView):
-
     def get(self, request):
         all_posts = Post.objects.all()
-        all_posts_serializer = PostSerializer(all_posts, many=True)
+        all_posts_serializer = PostSerializer(all_posts, many=True, context={'request': request})
         return Response(all_posts_serializer.data)
 
     def post(self, request):
         # Save New Post or update
-        data = request.data
-        import ipdb; ipdb.set_trace()
-        post_serializer = PostSerializer(data=data, context={'request': request, 'author': request.user})
+        data = PostDetail.get_dictionary(request)
+        post_serializer = PostSerializer(data=data, context={'request': request})
         if post_serializer.is_valid():
-            post_serializer.save()
+            post_serializer.save(author=request.user)
             return Response(post_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(post_serializer.errors, status=status.HTTP_404_NOT_FOUND)
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return IsAuthenticated(),
+        return super().get_permissions()
 
 
 class CommentList(APIView):
@@ -48,13 +52,19 @@ class CommentList(APIView):
     def get(self, request, pk):
         # List All Posts
         post = get_object_or_404(Post, pk=pk)
-        all_comments = post.comments.all()
-        all_comments_serializer = CommentSerializer(all_comments, many=True)
+        comments = post.comments.all()
+        # comments = Comment.objects.filter(post_id=pk)
+        all_comments_serializer = CommentSerializer(comments, many=True)
         return Response(all_comments_serializer.data)
 
+    @permission_classes((IsAuthenticated,))
     def post(self, request, pk):
         # Save New Post or update
-        data = request.data
+        data = {
+            'content': request.data.get('content'),
+            'author': request.user.id,
+            'post': pk
+        }
         comment_serializer = CommentSerializer(data=data)
         if comment_serializer.is_valid():
             comment_serializer.save()
@@ -65,19 +75,26 @@ class CommentList(APIView):
 
 class PostDetail(APIView):
     @staticmethod
+    def get_dictionary(request):
+        data = {k: v for k, v in request.data.items()}
+        data['author'] = request.user.id
+        return data
+
+    @staticmethod
     def get_object(pk):
         post = get_object_or_404(Post, pk=pk)
         return post
 
     def get(self, request, pk):
         post = self.get_object(pk)
-        post_serializer = PostSerializer(post)
+        post_serializer = PostSerializer(post, context={'request': request})
         return Response(post_serializer.data)
 
     def put(self, request, pk):
-        data = request.data
+        data = self.get_dictionary(request)
+        # import ipdb; ipdb.set_trace()
         post = self.get_object(pk)
-        post_serializer = PostSerializer(post, data=data)
+        post_serializer = PostSerializer(post, data=data, context={'request': request})
         if post_serializer.is_valid():
             post_serializer.save()
             return Response(post_serializer.data, status=status.HTTP_200_OK)
@@ -89,6 +106,11 @@ class PostDetail(APIView):
         instance.archived = True
         instance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_permissions(self):
+        if self.request.method == 'PUT':
+            return IsAuthenticated(), IsOwner()
+        return super().get_permissions()
 
 
 class ListUser(generics.ListAPIView):
@@ -108,7 +130,7 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CreateDestroyLikeView(APIView):
-    permission_classes = (IsOwner, IsAdminUser)
+    permission_classes = (IsAuthenticated, IsOwner)
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
 
